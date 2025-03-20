@@ -1,0 +1,1 @@
+This repo is used to test the CO2 sensor GMP251 from Vaisala. This repo will not be maintained after this code is included into the Bioreactor repo.

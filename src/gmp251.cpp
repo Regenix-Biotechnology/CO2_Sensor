@@ -18,7 +18,24 @@ eGMP251Status GMP251::begin()
     return this->status = GMP_251_STATUS_NOT_INITIALISED;
 }
 
-eGMP251Status GMP251::forceSerialMode()
+eGMP251Status GMP251::update()
+{
+    if (millis() - this->lastReadTime >= READ_INTERVAL_MS)
+    {
+        this->lastReadTime = millis();
+
+        if (this->status == GMP_251_STATUS_NOT_INITIALISED || this->status == GMP_251_STATUS_PARSING_FAILED)
+        {
+            forceSerialMode();
+            return this->status;
+        }
+
+        parseCO2();
+    }
+    return this->status;
+}
+
+void GMP251::forceSerialMode()
 {
     // Force Vaisala Industrial Protocol mode
     sendCarriageReturns();
@@ -32,7 +49,6 @@ eGMP251Status GMP251::forceSerialMode()
         this->status = GMP_251_STATUS_NOT_INITIALISED;
     else
         this->status = GMP_251_STATUS_INITIALIZED;
-    return this->status;
 }
 
 /**
@@ -82,13 +98,12 @@ String GMP251::readResponse()
 eGMP251Status GMP251::parseCO2()
 {
     String response = readResponse();
+    sendCommand("send"); // Request CO₂ data
 
     int start = response.indexOf("CO2=");
-    if (start == -1)
-        return this->status = GMP_251_STATUS_PARSING_FAILED;
-
     int end = response.indexOf("ppm", start);
-    if (end == -1)
+
+    if (start == -1 || end == -1)
         return this->status = GMP_251_STATUS_PARSING_FAILED;
 
     String co2Value = response.substring(start + CO2_STRING_LENGTH, end);
@@ -98,32 +113,6 @@ eGMP251Status GMP251::parseCO2()
 
     this->co2 = co2Value.toFloat();
     return this->status = GMP_251_STATUS_OK;
-}
-
-eGMP251Status GMP251::update()
-{
-    if (millis() - this->lastReadTime >= READ_INTERVAL_MS)
-    {
-        this->lastReadTime = millis();
-
-        if (this->status == GMP_251_STATUS_NOT_INITIALISED || this->status == GMP_251_STATUS_PARSING_FAILED)
-        {
-            forceSerialMode();
-            return this->status;
-        }
-
-        parseCO2();
-        sendCommandTime = millis() + 50;
-        isCommandSent = false;
-        return this->status;
-    }
-
-    if (millis() > sendCommandTime && !isCommandSent)
-    {
-        sendCommand("send"); // Request CO₂ data
-        isCommandSent = true;
-    }
-    return this->status;
 }
 
 float GMP251::getCO2()

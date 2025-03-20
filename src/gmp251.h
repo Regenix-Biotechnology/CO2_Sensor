@@ -36,11 +36,11 @@ public:
     void setTemperatureCompensation(const String &mode);
 
 private:
-    eGMP251Status forceSerialMode();
     eGMP251Status parseCO2();
+    String readResponse();
+    void forceSerialMode();
     void sendCarriageReturns();
     void sendCommand(const String &command);
-    String readResponse();
     void clearBuffer();
 
     HardwareSerial _serial;
