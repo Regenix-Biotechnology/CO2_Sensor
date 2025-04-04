@@ -23,10 +23,9 @@ void loop()
     if (millis() - lastReadTime >= PRINT_INTERVAL_MS)
     {
         lastReadTime = millis();
-        Serial.print("Status: ");
-        Serial.print(gmp251.getStatus());
-        Serial.print("      CO2: ");
-        Serial.print(gmp251.getCO2());
-        Serial.println(" ppm");
+        Serial.print(">Status:");
+        Serial.println(gmp251.getStatus());
+        Serial.print(">CO2:");
+        Serial.println(gmp251.getCO2());
     }
 }
